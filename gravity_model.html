@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gravity Model Calculator — Interzonal Trip Distribution</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --paper: #F4F7FA;
+            --paper-line: #E5ECF2;
+            --border: #D8E1E9;
+            --ink: #1A2836;
+            --muted: #5B7083;
+            --navy: #1E3A5F;
+            --navy-deep: #122640;
+            --copper: #C1712F;
+            --copper-hover: #A95F22;
+            --copper-soft: #F7E7D7;
+            --teal: #267362;
+            --teal-soft: #DCF0EB;
+            --red-soft: #F9E0DF;
+            --red: #B5453D;
+            --card: #FFFFFF;
+            --mono: 'JetBrains Mono', monospace;
+            --sans: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+        body {
+            font-family: var(--sans);
+            color: var(--ink);
+            background:
+                linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0/100% 28px,
+                linear-gradient(90deg, var(--paper-line) 1px, transparent 1px) 0 0/28px 100%,
+                var(--paper);
+            background-attachment: local;
+            min-height: 100vh;
+            padding: 32px 20px 80px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        .wrap { max-width: 1040px; margin: 0 auto; }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--navy-deep) 0%, var(--navy) 100%);
+            color: #fff;
+            border-radius: 16px;
+            padding: 30px 34px;
+            margin-bottom: 22px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 28px rgba(18, 38, 64, .22);
+        }
+        header::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, .03) 0 2px, transparent 2px 14px);
+            pointer-events: none;
+        }
+        .eyebrow {
+            font-family: var(--mono);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: .14em;
+            color: #9BC0E2;
+            text-transform: uppercase;
+            margin: 0 0 8px;
+        }
+        h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -.02em;
+        }
+        header p {
+            margin: 0;
+            color: #D0DFEE;
+            font-size: 14.5px;
+            line-height: 1.7;
+        }
+        .formula-box {
+            margin-top: 20px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-family: var(--mono);
+            font-size: 13.5px;
+            color: #F0F6FC;
+        }
+        .formula-pill {
+            background: rgba(255, 255, 255, .08);
+            border: 1px solid rgba(255, 255, 255, .16);
+            border-radius: 10px;
+            padding: 12px 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .formula-pill .frac .num { border-bottom-color: rgba(255, 255, 255, .75); }
+
+        /* Info Banner */
+        .info-box {
+            background: #EEF4FA;
+            border: 1px solid #CBD9E8;
+            border-left: 4px solid var(--navy);
+            padding: 16px 20px;
+            margin-bottom: 22px;
+            border-radius: 10px;
+            color: var(--navy-deep);
+            font-size: 13.5px;
+            line-height: 1.75;
+            box-shadow: 0 2px 6px rgba(18, 38, 64, .03);
+        }
+        .info-box code {
+            font-family: var(--mono);
+            background: rgba(30, 58, 95, .1);
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 12.5px;
+            font-weight: 600;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px 28px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 12px rgba(18, 38, 64, .04);
+        }
+        .card h2 {
+            font-size: 17px;
+            font-weight: 700;
+            margin: 0 0 16px;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            color: var(--navy-deep);
+        }
+        .card h2 .num {
+            font-family: var(--mono);
+            background: var(--navy);
+            color: #fff;
+            font-size: 12.5px;
+            font-weight: 700;
+            width: 26px;
+            height: 26px;
+            border-radius: 7px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Tables */
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            font-family: var(--mono);
+            font-variant-numeric: tabular-nums;
+            font-size: 13.5px;
+        }
+        th, td {
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        table tr:first-child th, table tr:first-child td { border-top: none; }
+        table tr:last-child th, table tr:last-child td { border-bottom: none; }
+        table tr th:first-child, table tr td:first-child { border-left: none; }
+        table tr th:last-child, table tr td:last-child { border-right: none; }
+
+        th {
+            background: #EDF2F7;
+            color: var(--navy-deep);
+            font-weight: 700;
+            font-family: var(--sans);
+            font-size: 13px;
+        }
+        td.label {
+            background: #F1F5F9;
+            color: var(--navy-deep);
+            font-family: var(--sans);
+            font-weight: 700;
+            font-size: 13px;
+            text-align: left;
+            padding-left: 16px;
+            width: 185px;
+            min-width: 165px;
+        }
+        .zone-table th:first-child {
+            background: #E5ECF3;
+            color: var(--muted);
+            font-family: var(--mono);
+            text-align: left;
+            padding-left: 16px;
+            width: 185px;
+        }
+
+        /* Inputs & Select */
+        input[type="number"], select {
+            font-family: var(--mono);
+            font-variant-numeric: tabular-nums;
+            font-size: 14px;
+            font-weight: 500;
+            width: 100%;
+            max-width: 160px;
+            height: 38px;
+            padding: 6px 10px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            background: #FAFBFD;
+            color: var(--ink);
+            text-align: center;
+            transition: border-color .15s, box-shadow .15s, background .15s;
+        }
+        select {
+            font-family: var(--sans);
+            font-weight: 600;
+            max-width: 210px;
+            cursor: pointer;
+        }
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: var(--navy);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(30, 58, 95, .12);
+        }
+
+        /* Matrices Grid */
+        .matrices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(390px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .matrices-grid .card { margin-bottom: 0; }
+        .matrix-table th {
+            height: 40px;
+            min-width: 74px;
+        }
+        .matrix-table th:first-child {
+            width: 64px;
+            min-width: 64px;
+            background: #E5ECF3;
+            font-family: var(--mono);
+            font-size: 12.5px;
+            color: var(--muted);
+        }
+        .matrix-table td {
+            padding: 7px 8px;
+            height: 50px;
+        }
+        .matrix-table td.diag-cell {
+            background: #F4F6F9;
+        }
+        .matrix-table td.diag-cell input {
+            background: #EEF2F6;
+            color: #64748B;
+            border-style: dashed;
+        }
+        .matrix-table input[type="number"] {
+            max-width: 76px;
+            height: 36px;
+        }
+
+        /* Primary Button */
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 50px;
+            background-color: var(--copper);
+            color: #fff;
+            font-family: var(--sans);
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(193, 113, 47, .32);
+            transition: background-color .15s, transform .1s, box-shadow .15s;
+            margin-top: 8px;
+        }
+        .btn:hover {
+            background-color: var(--copper-hover);
+            box-shadow: 0 6px 18px rgba(193, 113, 47, .42);
+        }
+        .btn:active { transform: translateY(1px); }
+
+        /* Results Section */
+        .results {
+            margin-top: 28px;
+            padding: 28px 30px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(18, 38, 64, .05);
+            display: none;
+        }
+        .results-header {
+            text-align: center;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--navy-deep);
+            margin: 0 0 24px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid #EDF2F7;
+        }
+        .section-title {
+            font-weight: 700;
+            margin-top: 28px;
+            margin-bottom: 12px;
+            color: var(--copper);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title::before {
+            content: "";
+            width: 14px;
+            height: 2.5px;
+            border-radius: 2px;
+            background: var(--copper);
+            display: inline-block;
+        }
+        .formula {
+            direction: ltr;
+            text-align: left;
+            background: #162436;
+            color: #DCE6F2;
+            padding: 18px 22px;
+            border-radius: 10px;
+            border: 1px solid #243852;
+            font-family: var(--mono);
+            font-variant-numeric: tabular-nums;
+            margin-bottom: 18px;
+            font-size: 13.5px;
+            overflow-x: auto;
+            line-height: 1.85;
+        }
+        .formula span.highlight { color: #7CC4FA; font-weight: 700; }
+        .formula span.val { color: #6EE7B7; font-weight: 700; }
+        .formula span.comment {
+            display: block;
+            color: #7F96AC;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        .formula span.stop-cond {
+            color: #FCA5A5;
+            font-weight: 700;
+            display: inline-block;
+        }
+        .ratio-line {
+            display: inline-block;
+            color: #FBBF24;
+            margin-top: 2px;
+        }
+        .converged-banner {
+            margin-top: 22px;
+            padding: 15px 20px;
+            background: var(--teal-soft);
+            border: 1px solid #A7D7CA;
+            border-left: 4px solid var(--teal);
+            border-radius: 10px;
+            color: #185243;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        /* Fractions */
+        .frac {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            margin: 0 4px;
+            font-size: 0.92em;
+            line-height: 1.35;
+        }
+        .frac > span { display: block; padding: 2px 8px; white-space: nowrap; }
+        .frac span.bottom { border-top: 1.5px solid #8DA4BE; }
+
+        footer {
+            text-align: center;
+            font-size: 12px;
+            color: #7E92A4;
+            margin-top: 34px;
+            font-family: var(--mono);
+        }
+
+        @media (max-width: 680px) {
+            body { padding: 18px 12px 60px; }
+            header { padding: 22px 20px; }
+            h1 { font-size: 23px; }
+            .card, .results { padding: 18px 16px; }
+            .matrices-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+
+    <header>
+        <p class="eyebrow">Trip Distribution &middot; Synthetic Model</p>
+        <h1>Gravity Model Calculator</h1>
+        <p>Interzonal trip distribution tool with iterative attraction balancing, step-by-step fraction breakdowns, and automated convergence verification.</p>
+        <div class="formula-box">
+            <div class="formula-pill">
+                <span>Tᵢⱼ = Pᵢ &times;</span>
+                <div class="frac">
+                    <span>Aⱼ &middot; bⱼ &middot; Fᵢⱼ &middot; Kᵢⱼ</span>
+                    <span class="bottom">Σₖ (Aₖ &middot; bₖ &middot; Fᵢₖ &middot; Kᵢₖ)</span>
+                </div>
+            </div>
+            <div class="formula-pill">
+                <span>Fᵢⱼ = 1 / tᵢⱼ<sup>b</sup></span>
+            </div>
+        </div>
+    </header>
+
+    <div class="info-box">
+        &bull; All steps start from <b>Iteration (0)</b> and iteration numbers are displayed in parentheses <code>^(n)</code>.<br>
+        &bull; <b>Modified Stopping Criterion:</b> At the end of each step, the sum of calculated trips for each attraction zone (&Sigma;T) is divided by the target attraction (A). If this ratio (&Sigma;T / A) falls within the range of <b>[0.95 to 1.05]</b> for <b>all zones</b>, the model stops.<br>
+        &bull; <b>Symmetric Matrix:</b> The travel time/distance matrix is automatically symmetric.
+    </div>
+
+    <div class="card">
+        <h2><span class="num">1</span> Main Model Settings</h2>
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>Friction Factor Basis (F)</th>
+                    <th>Friction Factor Exponent (b)</th>
+                    <th>Max Iterations</th>
+                </tr>
+                <tr>
+                    <td>
+                        <select id="cost_type" onchange="updateLabels()">
+                            <option value="t">Travel Time (t)</option>
+                            <option value="d">Distance (d)</option>
+                        </select>
+                    </td>
+                    <td><input type="number" step="0.1" id="power_b" value="2"></td>
+                    <td><input type="number" id="num_iters" value="10"></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2><span class="num">2</span> Zone Information (Production &amp; Attraction)</h2>
+        <div class="table-wrap">
+            <table class="zone-table">
+                <tr>
+                    <th>Zone i / j</th>
+                    <th>1</th>
+                    <th>2</th>
+                    <th>3</th>
+                    <th>4</th>
+                </tr>
+                <tr>
+                    <td class="label">Production (P_i)</td>
+                    <td><input type="number" id="p_0" value="500"></td>
+                    <td><input type="number" id="p_1" value="600"></td>
+                    <td><input type="number" id="p_2" value="0"></td>
+                    <td><input type="number" id="p_3" value="0"></td>
+                </tr>
+                <tr>
+                    <td class="label">Attraction (A_j)</td>
+                    <td><input type="number" id="a_0" value="0"></td>
+                    <td><input type="number" id="a_1" value="0"></td>
+                    <td><input type="number" id="a_2" value="300"></td>
+                    <td><input type="number" id="a_3" value="800"></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="matrices-grid">
+        <div class="card">
+            <h2><span class="num">3</span> <span id="cost_label">Travel Time (t_ij)</span> Matrix</h2>
+            <div class="table-wrap">
+                <table class="matrix-table">
+                    <tr><th>i \ j</th><th>1</th><th>2</th><th>3</th><th>4</th></tr>
+                    <tr><th>1</th>
+                        <td class="diag-cell"><input type="number" id="c_0_0" value="0"></td>
+                        <td><input type="number" id="c_0_1" value="0" oninput="syncMatrix(0, 1)"></td>
+                        <td><input type="number" id="c_0_2" value="5" oninput="syncMatrix(0, 2)"></td>
+                        <td><input type="number" id="c_0_3" value="10" oninput="syncMatrix(0, 3)"></td>
+                    </tr>
+                    <tr><th>2</th>
+                        <td><input type="number" id="c_1_0" value="0" oninput="syncMatrix(1, 0)"></td>
+                        <td class="diag-cell"><input type="number" id="c_1_1" value="0"></td>
+                        <td><input type="number" id="c_1_2" value="10" oninput="syncMatrix(1, 2)"></td>
+                        <td><input type="number" id="c_1_3" value="5" oninput="syncMatrix(1, 3)"></td>
+                    </tr>
+                    <tr><th>3</th>
+                        <td><input type="number" id="c_2_0" value="5" oninput="syncMatrix(2, 0)"></td>
+                        <td><input type="number" id="c_2_1" value="10" oninput="syncMatrix(2, 1)"></td>
+                        <td class="diag-cell"><input type="number" id="c_2_2" value="0"></td>
+                        <td><input type="number" id="c_2_3" value="0" oninput="syncMatrix(2, 3)"></td>
+                    </tr>
+                    <tr><th>4</th>
+                        <td><input type="number" id="c_3_0" value="10" oninput="syncMatrix(3, 0)"></td>
+                        <td><input type="number" id="c_3_1" value="5" oninput="syncMatrix(3, 1)"></td>
+                        <td><input type="number" id="c_3_2" value="0" oninput="syncMatrix(3, 2)"></td>
+                        <td class="diag-cell"><input type="number" id="c_3_3" value="0"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><span class="num">4</span> Socio-Economic Factor (K_ij)</h2>
+            <div class="table-wrap">
+                <table class="matrix-table">
+                    <tr><th>i \ j</th><th>1</th><th>2</th><th>3</th><th>4</th></tr>
+                    <tr><th>1</th><td class="diag-cell"><input type="number" id="k_0_0" value="1"></td><td><input type="number" id="k_0_1" value="1"></td><td><input type="number" id="k_0_2" value="1"></td><td><input type="number" id="k_0_3" value="1"></td></tr>
+                    <tr><th>2</th><td><input type="number" id="k_1_0" value="1"></td><td class="diag-cell"><input type="number" id="k_1_1" value="1"></td><td><input type="number" id="k_1_2" value="1"></td><td><input type="number" id="k_1_3" value="1"></td></tr>
+                    <tr><th>3</th><td><input type="number" id="k_2_0" value="1"></td><td><input type="number" id="k_2_1" value="1"></td><td class="diag-cell"><input type="number" id="k_2_2" value="1"></td><td><input type="number" id="k_2_3" value="1"></td></tr>
+                    <tr><th>4</th><td><input type="number" id="k_3_0" value="1"></td><td><input type="number" id="k_3_1" value="1"></td><td><input type="number" id="k_3_2" value="1"></td><td class="diag-cell"><input type="number" id="k_3_3" value="1"></td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn" onclick="calculateGravity()">Calculate and Show Complete Solution</button>
+
+    <div id="results" class="results">
+        <!-- Results will be injected here -->
+    </div>
+
+    <footer>Gravity Trip Distribution Model &middot; Step-by-Step Iterative Solver</footer>
+</div>
+
+<script>
+    function syncMatrix(i, j) {
+        const val = document.getElementById(`c_${i}_${j}`).value;
+        document.getElementById(`c_${j}_${i}`).value = val;
+    }
+
+    function updateLabels() {
+        const type = document.getElementById('cost_type').value;
+        document.getElementById('cost_label').innerText = type === 't' ? 'Travel Time (t_ij)' : 'Distance (d_ij)';
+    }
+
+    function formatFloat(val, decimals = 3) {
+        return Number.isInteger(val) ? val.toString() : parseFloat(val.toFixed(decimals)).toString();
+    }
+
+    function calculateGravity() {
+        const N = 4;
+        const b = parseFloat(document.getElementById('power_b').value);
+        const maxIters = parseInt(document.getElementById('num_iters').value);
+
+        let P = [], A = [];
+        let C = [], K = [], F = [];
+
+        for (let i = 0; i < N; i++) {
+            P[i] = parseFloat(document.getElementById(`p_${i}`).value) || 0;
+            A[i] = parseFloat(document.getElementById(`a_${i}`).value) || 0;
+            C[i] = []; K[i] = []; F[i] = [];
+            for (let j = 0; j < N; j++) {
+                C[i][j] = parseFloat(document.getElementById(`c_${i}_${j}`).value) || 0;
+                K[i][j] = parseFloat(document.getElementById(`k_${i}_${j}`).value) || 1;
+                
+                if (C[i][j] > 0) {
+                    F[i][j] = 1 / Math.pow(C[i][j], b);
+                } else {
+                    F[i][j] = 0;
+                }
+            }
+        }
+
+        let html = `<h2 class="results-header">Step-by-Step Gravity Model Calculation Report</h2>`;
+
+        html += `<div class="section-title">Prerequisite Step: Calculate Friction Factor (F_ij)</div>`;
+        let f_html = ``;
+        for(let i = 0; i < N; i++) {
+            for(let j = 0; j < N; j++) {
+                if(C[i][j] > 0 && P[i] > 0 && A[j] > 0) {
+                    f_html += `<span class="highlight">F_${i+1}${j+1}</span> = 1 / ${C[i][j]}^${b} = <span class="val">1/${Math.pow(C[i][j], b)}</span> <br>`;
+                }
+            }
+        }
+        html += `<div class="formula">${f_html}</div>`;
+
+        let b_j = new Array(N).fill(1); 
+        let T = Array.from({length: N}, () => new Array(N).fill(0));
+
+        for (let iter = 0; iter <= maxIters; iter++) {
+            html += `<div class="section-title">Iteration (${iter}) Calculations</div>`;
+            let step_html = ``;
+
+            if (iter === 0) {
+                step_html += `<span class="comment">// Initial balancing factor values at iteration zero are assumed to be 1.</span>`;
+                for(let j = 0; j < N; j++) {
+                    if (A[j] > 0) {
+                        step_html += `<span class="highlight">b_${j+1}<sup>(0)</sup></span> = <span class="val">1</span><br>`;
+                    }
+                }
+            } else {
+                let new_b_j = [...b_j];
+                
+                step_html += `<span class="comment">// Update balancing factors based on attraction values and total trips from the previous iteration</span>`;
+                for(let j = 0; j < N; j++) {
+                    if (A[j] > 0) {
+                        let sum_T_prev = 0;
+                        for(let i = 0; i < N; i++) sum_T_prev += T[i][j];
+                        
+                        let ratio = A[j] / sum_T_prev;
+                        new_b_j[j] = b_j[j] * ratio;
+                        
+                        let prev_b_str = iter === 1 ? "1" : formatFloat(b_j[j], 3);
+                        step_html += `<span class="highlight">b_${j+1}<sup>(${iter})</sup></span> = b_${j+1}<sup>(${iter-1})</sup> × ( A_${j+1} / &Sigma;T_i${j+1}<sup>(${iter-1})</sup> ) = ${prev_b_str} × ( ${A[j]} / ${formatFloat(sum_T_prev, 0)} ) = <span class="val">${formatFloat(new_b_j[j], 3)}</span><br>`;
+                    }
+                }
+                b_j = new_b_j;
+            }
+
+            step_html += `<br><span class="comment">// Calculate trip distribution in this step (all fractions shown in full)</span>`;
+
+            let new_T = Array.from({length: N}, () => new Array(N).fill(0));
+            
+            for (let i = 0; i < N; i++) {
+                if (P[i] === 0) continue;
+
+                let denom_val = 0;
+                let denom_str = "";
+                for (let j = 0; j < N; j++) {
+                    if (A[j] > 0 && C[i][j] > 0) {
+                        let term = A[j] * b_j[j] * F[i][j] * K[i][j];
+                        denom_val += term;
+                        denom_str += `${A[j]}(${formatFloat(b_j[j], 3)})(1/${Math.pow(C[i][j], b)})`;
+                        if (K[i][j] !== 1) denom_str += `(${K[i][j]})`;
+                        denom_str += ` + `;
+                    }
+                }
+                denom_str = denom_str.slice(0, -3); 
+
+                for (let j = 0; j < N; j++) {
+                    if (A[j] > 0 && C[i][j] > 0) {
+                        let num_val = A[j] * b_j[j] * F[i][j] * K[i][j];
+                        new_T[i][j] = P[i] * (num_val / denom_val);
+                        
+                        let num_str = `${A[j]}(${formatFloat(b_j[j], 3)})(1/${Math.pow(C[i][j], b)})`;
+                        if (K[i][j] !== 1) num_str += `(${K[i][j]})`;
+
+                        step_html += `<span class="highlight">T_${i+1}${j+1}<sup>(${iter})</sup></span> = ${P[i]} × <div class="frac"><span>${num_str}</span><span class="bottom">${denom_str}</span></div> = ${P[i]} × <div class="frac"><span>${formatFloat(num_val, 3)}</span><span class="bottom">${formatFloat(denom_val, 3)}</span></div> = <span class="val">${formatFloat(new_T[i][j], 0)}</span> trips<br><br>`;
+                    }
+                }
+            }
+            T = new_T;
+
+            step_html += `<span class="comment">// Check total trips and convergence criterion (ΣT / A)</span>`;
+            let all_converged = true;
+            
+            for (let j = 0; j < N; j++) {
+                if (A[j] > 0) {
+                    let sum_T = 0;
+                    let sum_str = "";
+                    for (let i = 0; i < N; i++) {
+                        if (P[i] > 0 && C[i][j] > 0) {
+                            sum_T += T[i][j];
+                            sum_str += `${formatFloat(T[i][j], 0)} + `;
+                        }
+                    }
+                    sum_str = sum_str.slice(0, -3);
+                    let comp_sign = Math.abs(sum_T - A[j]) < 1 ? "≈" : "≠";
+                    let ratio = sum_T / A[j];
+                    
+                    step_html += `&Sigma; T_i${j+1}<sup>(${iter})</sup> = ${sum_str} = <span class="val">${formatFloat(sum_T, 0)}</span> ${comp_sign} A_${j+1} = ${A[j]}<br>`;
+                    step_html += `<span class="ratio-line">Error Ratio: (${formatFloat(sum_T, 0)} / ${A[j]}) = <b>${formatFloat(ratio, 3)}</b></span><br><br>`;
+                    
+                    // Check if ratio is out of bounds
+                    if (ratio < 0.95 || ratio > 1.05) {
+                        all_converged = false;
+                    }
+                }
+            }
+
+            html += `<div class="formula">${step_html}</div>`;
+            
+            if (all_converged) {
+                html += `<div class="converged-banner">✓ Note: All (ΣT / A) ratios fell within the [0.95 to 1.05] range. Calculations stopped successfully.</div>`;
+                break;
+            }
+        }
+
+        const resultsEl = document.getElementById('results');
+        resultsEl.innerHTML = html;
+        resultsEl.style.display = 'block';
+        resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRS Model Calculator - Transportation Planning</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --paper: #F4F7FA;
+            --paper-line: #E5ECF2;
+            --border: #D8E1E9;
+            --ink: #1A2836;
+            --muted: #5B7083;
+            --navy: #1E3A5F;
+            --navy-deep: #122640;
+            --copper: #C1712F;
+            --copper-hover: #A95F22;
+            --copper-soft: #F7E7D7;
+            --teal: #267362;
+            --teal-soft: #DCF0EB;
+            --red: #B5453D;
+            --card: #FFFFFF;
+            --mono: 'JetBrains Mono', monospace;
+            --sans: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+        body {
+            font-family: var(--sans);
+            color: var(--ink);
+            background:
+                linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0/100% 28px,
+                linear-gradient(90deg, var(--paper-line) 1px, transparent 1px) 0 0/28px 100%,
+                var(--paper);
+            background-attachment: local;
+            min-height: 100vh;
+            padding: 32px 20px 80px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        .wrap { max-width: 1000px; margin: 0 auto; }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--navy-deep) 0%, var(--navy) 100%);
+            color: #fff;
+            border-radius: 16px;
+            padding: 30px 34px;
+            margin-bottom: 22px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 28px rgba(18, 38, 64, .22);
+        }
+        header::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, .03) 0 2px, transparent 2px 14px);
+            pointer-events: none;
+        }
+        .eyebrow {
+            font-family: var(--mono);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: .14em;
+            color: #9BC0E2;
+            text-transform: uppercase;
+            margin: 0 0 8px;
+        }
+        h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -.02em;
+        }
+        header p {
+            margin: 0;
+            color: #D0DFEE;
+            font-size: 14.5px;
+            line-height: 1.7;
+        }
+        .formula-box {
+            margin-top: 20px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-family: var(--mono);
+            font-size: 13.5px;
+            color: #F0F6FC;
+        }
+        .formula-pill {
+            background: rgba(255, 255, 255, .08);
+            border: 1px solid rgba(255, 255, 255, .16);
+            border-radius: 10px;
+            padding: 12px 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Info Banner */
+        .info-box {
+            background: #EEF4FA;
+            border: 1px solid #CBD9E8;
+            border-left: 4px solid var(--navy);
+            padding: 16px 20px;
+            margin-bottom: 22px;
+            border-radius: 10px;
+            color: var(--navy-deep);
+            font-size: 13.5px;
+            line-height: 1.75;
+            box-shadow: 0 2px 6px rgba(18, 38, 64, .03);
+        }
+        .note {
+            color: var(--red);
+            font-weight: 700;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px 28px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 12px rgba(18, 38, 64, .04);
+        }
+        .card h2 {
+            font-size: 17px;
+            font-weight: 700;
+            margin: 0 0 16px;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            color: var(--navy-deep);
+        }
+        .card h2 .num {
+            font-family: var(--mono);
+            background: var(--navy);
+            color: #fff;
+            font-size: 12.5px;
+            font-weight: 700;
+            width: 26px;
+            height: 26px;
+            border-radius: 7px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Tables */
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            font-family: var(--mono);
+            font-variant-numeric: tabular-nums;
+            font-size: 13.5px;
+        }
+        th, td {
+            border: 1px solid var(--border);
+            padding: 11px 14px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        table tr:first-child th, table tr:first-child td { border-top: none; }
+        table tr:last-child th, table tr:last-child td { border-bottom: none; }
+        table tr th:first-child, table tr td:first-child { border-left: none; }
+        table tr th:last-child, table tr td:last-child { border-right: none; }
+
+        th {
+            background: #EDF2F7;
+            color: var(--navy-deep);
+            font-weight: 700;
+            font-family: var(--sans);
+            font-size: 13px;
+            line-height: 1.45;
+        }
+        td.label {
+            background: #F1F5F9;
+            color: var(--navy-deep);
+            font-family: var(--sans);
+            font-weight: 700;
+            font-size: 13.5px;
+            text-align: left;
+            padding-left: 16px;
+            min-width: 210px;
+        }
+
+        /* Inputs */
+        input[type="number"] {
+            font-family: var(--mono);
+            font-variant-numeric: tabular-nums;
+            font-size: 14px;
+            font-weight: 500;
+            width: 100%;
+            max-width: 150px;
+            height: 38px;
+            padding: 6px 10px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            background: #FAFBFD;
+            color: var(--ink);
+            text-align: center;
+            transition: border-color .15s, box-shadow .15s, background .15s;
+        }
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--navy);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(30, 58, 95, .12);
+        }
+
+        /* Primary Button */
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 50px;
+            background-color: var(--copper);
+            color: #fff;
+            font-family: var(--sans);
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(193, 113, 47, .32);
+            transition: background-color .15s, transform .1s, box-shadow .15s;
+            margin-top: 8px;
+        }
+        .btn:hover {
+            background-color: var(--copper-hover);
+            box-shadow: 0 6px 18px rgba(193, 113, 47, .42);
+        }
+        .btn:active { transform: translateY(1px); }
+
+        /* Results Section */
+        .results {
+            margin-top: 28px;
+            padding: 28px 30px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(18, 38, 64, .05);
+            display: none;
+        }
+        .results h2 {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--navy-deep);
+            padding-bottom: 14px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #EDF2F7;
+        }
+        .section-title {
+            font-weight: 700;
+            margin-top: 26px;
+            margin-bottom: 12px;
+            color: var(--copper);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title:first-of-type { margin-top: 0; }
+        .section-title::before {
+            content: "";
+            width: 14px;
+            height: 2.5px;
+            border-radius: 2px;
+            background: var(--copper);
+            display: inline-block;
+        }
+        .formula {
+            direction: ltr;
+            text-align: left;
+            background: #162436;
+            color: #DCE6F2;
+            padding: 18px 22px;
+            border-radius: 10px;
+            border: 1px solid #243852;
+            font-family: var(--mono);
+            font-variant-numeric: tabular-nums;
+            margin-bottom: 14px;
+            font-size: 13.5px;
+            overflow-x: auto;
+            line-height: 1.75;
+            white-space: pre-wrap;
+        }
+        .formula span.highlight {
+            color: #7CC4FA;
+            font-weight: 700;
+        }
+        .formula span.result-val {
+            color: #6EE7B7;
+            font-weight: 700;
+        }
+        .formula span.comment {
+            display: block;
+            color: #7F96AC;
+            font-size: 12.5px;
+            margin-bottom: 4px;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 12px;
+            color: #7E92A4;
+            margin-top: 34px;
+            font-family: var(--mono);
+        }
+
+        @media (max-width: 680px) {
+            body { padding: 18px 12px 60px; }
+            header { padding: 22px 20px; }
+            h1 { font-size: 23px; }
+            .card, .results { padding: 18px 16px; }
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+
+    <header>
+        <p class="eyebrow">Mode Choice &middot; Quick Response System</p>
+        <h1>QRS Model Calculator (Quick Response System)</h1>
+        <p>Urban travel impedance evaluation and mode share estimation model based on travel time, excess time, and out-of-pocket costs.</p>
+        <div class="formula-box">
+            <div class="formula-pill">
+                <span>I<sub>ijm</sub> = t<sub>travel</sub> + 2.5&middot;t<sub>excess</sub> + 3&middot;(Cost / Income<sub>min</sub>)</span>
+            </div>
+            <div class="formula-pill">
+                <span>MS<sub>a</sub> = I<sub>t</sub><sup>b</sup> / (I<sub>t</sub><sup>b</sup> + I<sub>a</sub><sup>b</sup>)</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="info-box">
+        This tool performs all calculations related to travel impedance ($I_{ijm}$) and trip distribution.<br>
+        <span class="note">Important Note Implemented in Code:</span> According to the model rules, parking cost is automatically <strong>divided by 2</strong> in the formulas (since we calculate one-way trips). Additionally, travel cost is considered as (cost per km × distance).
+    </div>
+
+    <div class="card">
+        <h2><span class="num">1</span> General Model Information</h2>
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>Annual Income (Toman)</th>
+                    <th>Working Minutes per Year</th>
+                    <th>Trip Purpose Exponent (b)</th>
+                    <th>Total Daily Trips (T)</th>
+                </tr>
+                <tr>
+                    <td><input type="number" id="annual_income" value="1200000"></td>
+                    <td><input type="number" id="work_minutes" value="120000"></td>
+                    <td><input type="number" step="0.1" id="b_value" value="2"></td>
+                    <td><input type="number" id="total_trips" value="1240"></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2><span class="num">2</span> Travel Mode Characteristics</h2>
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th style="width: 28%; text-align: left; padding-left: 16px;">Parameter</th>
+                    <th>Private Vehicle (Auto)</th>
+                    <th>Public Transit (Transit)</th>
+                </tr>
+                <tr>
+                    <td class="label">Distance (km)</td>
+                    <td><input type="number" step="0.1" id="dist_a" value="10"></td>
+                    <td><input type="number" step="0.1" id="dist_t" value="8"></td>
+                </tr>
+                <tr>
+                    <td class="label">Cost per km (Toman)</td>
+                    <td><input type="number" step="0.1" id="cost_a" value="15"></td>
+                    <td><input type="number" step="0.1" id="cost_t" value="10"></td>
+                </tr>
+                <tr>
+                    <td class="label">Excess Time (min)</td>
+                    <td><input type="number" step="0.1" id="extra_a" value="5"></td>
+                    <td><input type="number" step="0.1" id="extra_t" value="8"></td>
+                </tr>
+                <tr>
+                    <td class="label">Total Parking Cost (Toman)</td>
+                    <td><input type="number" step="0.1" id="park_a" value="150"></td>
+                    <td><input type="number" step="0.1" id="park_t" value="0"></td>
+                </tr>
+                <tr>
+                    <td class="label">Average Speed (km/h)</td>
+                    <td><input type="number" step="0.1" id="speed_a" value="30"></td>
+                    <td><input type="number" step="0.1" id="speed_t" value="20"></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <button class="btn" onclick="calculateQRS()">Calculate QRS and Show Results</button>
+
+    <div id="results" class="results">
+        <h2 style="text-align: center; margin-top: 0;">Step-by-Step QRS Model Calculation Report</h2>
+        
+        <div class="section-title">Step 1: Calculate Income per Minute</div>
+        <div id="income_calc"></div>
+
+        <div class="section-title">Step 2: Calculate Travel Impedance (Iijm)</div>
+        <div id="impedance_calc"></div>
+
+        <div class="section-title">Step 3: Calculate Mode Share (MS)</div>
+        <div id="share_calc"></div>
+
+        <div class="section-title">Step 4: Daily Trip Distribution (T)</div>
+        <div id="trip_calc"></div>
+    </div>
+
+    <footer>QRS Model Calculator &middot; Transportation Engineering &amp; Planning</footer>
+</div>
+
+<script>
+    function format(num, decimals=3) {
+        return parseFloat(num.toFixed(decimals)).toString();
+    }
+
+    function calculateQRS() {
+        // Get general params
+        const income = parseFloat(document.getElementById('annual_income').value);
+        const workMins = parseFloat(document.getElementById('work_minutes').value);
+        const b = parseFloat(document.getElementById('b_value').value);
+        const totalTrips = parseFloat(document.getElementById('total_trips').value);
+
+        // Get Auto params
+        const dist_a = parseFloat(document.getElementById('dist_a').value);
+        const cost_a = parseFloat(document.getElementById('cost_a').value);
+        const extra_a = parseFloat(document.getElementById('extra_a').value);
+        const park_a = parseFloat(document.getElementById('park_a').value);
+        const speed_a = parseFloat(document.getElementById('speed_a').value);
+
+        // Get Transit params
+        const dist_t = parseFloat(document.getElementById('dist_t').value);
+        const cost_t = parseFloat(document.getElementById('cost_t').value);
+        const extra_t = parseFloat(document.getElementById('extra_t').value);
+        const park_t = parseFloat(document.getElementById('park_t').value);
+        const speed_t = parseFloat(document.getElementById('speed_t').value);
+
+        // Step 1: Income per minute
+        const inc_per_min = income / workMins;
+        const inc_str = `<span class="comment">// Income per minute</span><span class="highlight">Income/min</span> = ${income} / ${workMins} = <span class="result-val">${format(inc_per_min, 4)}</span>`;
+        document.getElementById('income_calc').innerHTML = `<div class="formula">${inc_str}</div>`;
+
+        // Step 2: Impedance calculations (I)
+        // Auto
+        const t_travel_a = (dist_a / speed_a) * 60;
+        const t_extra_a = 2.5 * extra_a;
+        const total_cost_a = (cost_a * dist_a) + (park_a / 2);
+        const cost_term_a = 3 * (total_cost_a / inc_per_min);
+        const I_a = t_travel_a + t_extra_a + cost_term_a;
+
+        const str_I_a = `<span class="comment">// Auto travel impedance</span><span class="highlight">I_a</span> = (${dist_a} / ${speed_a} * 60) + (2.5 * ${extra_a}) + 3 * ((${cost_a} * ${dist_a}) + ${park_a}/2) / ${format(inc_per_min,2)}
+    = ${format(t_travel_a)} + ${format(t_extra_a)} + 3 * (${format(total_cost_a)}) / ${format(inc_per_min,2)}
+    = <span class="result-val">${format(I_a)}</span>`;
+
+        // Transit
+        const t_travel_t = (dist_t / speed_t) * 60;
+        const t_extra_t = 2.5 * extra_t;
+        const total_cost_t = (cost_t * dist_t) + (park_t / 2);
+        const cost_term_t = 3 * (total_cost_t / inc_per_min);
+        const I_t = t_travel_t + t_extra_t + cost_term_t;
+
+        const str_I_t = `<span class="comment">// Transit travel impedance</span><span class="highlight">I_t</span> = (${dist_t} / ${speed_t} * 60) + (2.5 * ${extra_t}) + 3 * ((${cost_t} * ${dist_t}) + ${park_t}/2) / ${format(inc_per_min,2)}
+    = ${format(t_travel_t)} + ${format(t_extra_t)} + 3 * (${format(total_cost_t)}) / ${format(inc_per_min,2)}
+    = <span class="result-val">${format(I_t)}</span>`;
+
+        document.getElementById('impedance_calc').innerHTML = `<div class="formula">${str_I_a}</div><div class="formula">${str_I_t}</div>`;
+
+        // Step 3: Mode Share (MS)
+        // MS_a uses I_t in numerator, MS_t uses I_a in numerator
+        const num_a = Math.pow(I_t, b);
+        const num_t = Math.pow(I_a, b);
+        const denom = num_a + num_t;
+
+        const MS_a = num_a / denom;
+        const MS_t = 1 - MS_a; // or num_t / denom
+
+        const MS_a_perc = (MS_a * 100).toFixed(2);
+        const MS_t_perc = (MS_t * 100).toFixed(2);
+
+        const str_MS_a = `<span class="comment">// Auto mode share</span><span class="highlight">MS_a</span> = (I_t^b) / (I_t^b + I_a^b) 
+     = (${format(I_t)}^${b}) / (${format(I_t)}^${b} + ${format(I_a)}^${b}) 
+     = ${format(num_a)} / (${format(num_a)} + ${format(num_t)})
+     = ${format(MS_a, 4)} ➔ <span class="result-val">${MS_a_perc}%</span>`;
+
+        const str_MS_t = `<span class="comment">// Transit mode share</span><span class="highlight">MS_t</span> = 1 - MS_a 
+     = 1 - ${format(MS_a, 4)} 
+     = ${format(MS_t, 4)} ➔ <span class="result-val">${MS_t_perc}%</span>`;
+
+        document.getElementById('share_calc').innerHTML = `<div class="formula">${str_MS_a}</div><div class="formula">${str_MS_t}</div>`;
+
+        // Step 4: Distributed Trips
+        const trips_a = totalTrips * MS_a;
+        const trips_t = totalTrips * MS_t;
+
+        const str_trips_a = `<span class="comment">// Auto trips</span><span class="highlight">T_a</span> = ${totalTrips} * ${format(MS_a, 4)} = <span class="result-val">${Math.round(trips_a)}</span>`;
+        const str_trips_t = `<span class="comment">// Transit trips</span><span class="highlight">T_t</span> = ${totalTrips} * ${format(MS_t, 4)} = <span class="result-val">${Math.round(trips_t)}</span>`;
+
+        document.getElementById('trip_calc').innerHTML = `<div class="formula">${str_trips_a}</div><div class="formula">${str_trips_t}</div>`;
+
+        // Show results
+        document.getElementById('results').style.display = 'block';
+    }
+</script>
+</body>
+</html>

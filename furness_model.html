@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fratar (Furness) Model — Interzonal Trip Distribution</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F4F7FA;
+    --paper-line:#E5ECF2;
+    --border:#D8E1E9;
+    --ink:#1A2836;
+    --muted:#5B7083;
+    --navy:#1E3A5F;
+    --navy-deep:#122640;
+    --copper:#C1712F;
+    --copper-hover:#A95F22;
+    --copper-soft:#F7E7D7;
+    --teal:#267362;
+    --teal-soft:#DCF0EB;
+    --red-soft:#F9E0DF;
+    --red:#B5453D;
+    --card:#FFFFFF;
+    --mono:'JetBrains Mono', monospace;
+    --sans:'Inter', system-ui, -apple-system, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--sans);
+    color:var(--ink);
+    background:
+      linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0/100% 28px,
+      linear-gradient(90deg, var(--paper-line) 1px, transparent 1px) 0 0/28px 100%,
+      var(--paper);
+    background-attachment:local;
+    min-height:100vh;
+    padding:32px 20px 80px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1000px;margin:0 auto;}
+
+  /* Header */
+  header{
+    background:linear-gradient(135deg, var(--navy-deep) 0%, var(--navy) 100%);
+    color:#fff;
+    border-radius:16px;
+    padding:30px 34px;
+    margin-bottom:24px;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 10px 28px rgba(18,38,64,.22);
+  }
+  header::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.03) 0 2px, transparent 2px 14px);
+    pointer-events:none;
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.14em;
+    color:#9BC0E2;
+    text-transform:uppercase;
+    margin:0 0 8px;
+  }
+  h1{
+    margin:0 0 8px;
+    font-size:28px;
+    font-weight:800;
+    letter-spacing:-.02em;
+  }
+  header p{
+    margin:0;
+    color:#D0DFEE;
+    font-size:14.5px;
+    line-height:1.7;
+  }
+  .formula-box{
+    margin-top:20px;
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+    font-family:var(--mono);
+    font-size:14px;
+    color:#F0F6FC;
+  }
+  .formula-pill{
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:10px;
+    padding:12px 18px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+  }
+  .formula-pill .frac .num{border-bottom-color:rgba(255,255,255,.75);}
+
+  /* Cards */
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:24px 28px;
+    margin-bottom:20px;
+    box-shadow:0 3px 12px rgba(18,38,64,.04);
+  }
+  .card h2{
+    font-size:17px;
+    font-weight:700;
+    margin:0 0 6px;
+    display:flex;
+    align-items:center;
+    gap:11px;
+    color:var(--navy-deep);
+  }
+  .card h2 .num{
+    font-family:var(--mono);
+    background:var(--navy);
+    color:#fff;
+    font-size:12.5px;
+    font-weight:700;
+    width:26px;height:26px;
+    border-radius:7px;
+    display:inline-flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .card .desc{
+    font-size:13.5px;
+    color:var(--muted);
+    margin:0 0 18px;
+    line-height:1.65;
+  }
+
+  /* Controls row */
+  .row{display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;}
+  .field{display:flex; flex-direction:column; gap:7px;}
+  .field label{font-size:12.5px; color:var(--muted); font-weight:600;}
+  input[type=number], input[type=text]{
+    font-family:var(--mono);
+    font-variant-numeric:tabular-nums;
+    font-size:14px;
+    font-weight:500;
+    border:1.5px solid var(--border);
+    border-radius:8px;
+    height:40px;
+    padding:6px 10px;
+    width:120px;
+    background:#FAFBFD;
+    color:var(--ink);
+    text-align:center;
+    transition:border-color .15s, box-shadow .15s, background .15s;
+  }
+  input[type=text]{
+    font-family:var(--sans);
+    font-weight:700;
+    color:var(--navy-deep);
+    background:#EEF4FA;
+    border-color:#CBD9E8;
+  }
+  input:focus{
+    outline:none;
+    border-color:var(--navy);
+    background:#fff;
+    box-shadow:0 0 0 3px rgba(30,58,95,.12);
+  }
+  .zonecount-field input{width:84px;}
+
+  button{
+    font-family:var(--sans);
+    font-weight:700;
+    font-size:14px;
+    border:none;
+    border-radius:8px;
+    height:40px;
+    padding:0 22px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    transition:background .15s, transform .1s, box-shadow .15s;
+  }
+  button:active{transform:translateY(1px);}
+  .btn-primary{
+    background:var(--copper);
+    color:#fff;
+    box-shadow:0 4px 12px rgba(193,113,47,.3);
+  }
+  .btn-primary:hover{
+    background:var(--copper-hover);
+    box-shadow:0 6px 16px rgba(193,113,47,.4);
+  }
+  .btn-secondary{
+    background:#EBF1F6;
+    color:var(--navy-deep);
+    border:1px solid #D3DFEA;
+  }
+  .btn-secondary:hover{background:#DFE8F0;}
+
+  /* Tables */
+  .matrix-wrap{
+    overflow-x:auto;
+    border:1px solid var(--border);
+    border-radius:10px;
+  }
+  table{
+    border-collapse:collapse;
+    width:100%;
+    font-family:var(--mono);
+    font-variant-numeric:tabular-nums;
+    font-size:13.5px;
+  }
+  th, td{
+    border:1px solid var(--border);
+    padding:10px 12px;
+    text-align:center;
+    vertical-align:middle;
+  }
+  table tr:first-child th, table tr:first-child td{border-top:none;}
+  table tr:last-child th, table tr:last-child td{border-bottom:none;}
+  table tr th:first-child, table tr td:first-child{border-left:none;}
+  table tr th:last-child, table tr td:last-child{border-right:none;}
+
+  th{
+    background:#EDF2F7;
+    color:var(--navy-deep);
+    font-weight:700;
+    font-family:var(--sans);
+    font-size:13px;
+  }
+
+  /* Zone Table (Step 2) */
+  .zone-table th{
+    width:215px;
+    min-width:190px;
+    text-align:left;
+    padding-left:16px;
+    background:#F1F5F9;
+  }
+  .zone-table td{
+    min-width:96px;
+    padding:8px 10px;
+  }
+  .zone-table input{
+    width:100%;
+    max-width:110px;
+    height:36px;
+  }
+
+  /* Matrix Table (Step 3) */
+  .matrix-table th{
+    min-width:92px;
+    height:42px;
+  }
+  .matrix-table th:first-child{
+    width:72px;
+    min-width:72px;
+    background:#E5ECF3;
+    font-family:var(--mono);
+    font-size:12.5px;
+    color:var(--muted);
+  }
+  .matrix-table td{
+    min-width:92px;
+    height:50px;
+    padding:7px 8px;
+  }
+  .matrix-table td.diag{
+    background:#F4F6F9;
+    color:#B0BCC8;
+    font-weight:600;
+  }
+  .matrix-table input{
+    width:76px;
+    height:36px;
+  }
+  .mirror-box{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:76px;
+    height:36px;
+    background:#F5F8FB;
+    border:1px dashed #CBD5E1;
+    border-radius:8px;
+    color:#64748B;
+    font-size:13.5px;
+    font-weight:500;
+  }
+
+  /* Iteration cards */
+  .iter-card{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:14px;
+    margin-bottom:16px;
+    overflow:hidden;
+    box-shadow:0 2px 8px rgba(18,38,64,.04);
+  }
+  .iter-head{
+    background:linear-gradient(90deg, var(--navy-deep), var(--navy));
+    color:#fff;
+    padding:14px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    cursor:pointer;
+    user-select:none;
+    gap:12px;
+  }
+  .iter-head .title{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-weight:700;
+    font-size:15px;
+  }
+  .iter-meta{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-left:auto;
+  }
+  .iter-head .badge{
+    font-family:var(--mono);
+    font-size:12px;
+    font-weight:600;
+    background:rgba(255,255,255,.15);
+    padding:4px 12px;
+    border-radius:20px;
+  }
+  .iter-head .badge.converged{background:var(--teal); color:#fff;}
+  .iter-body{padding:22px 24px; background:#FCFDFE; display:none;}
+  .iter-body.open{display:block;}
+  .chev{transition:transform .2s; font-size:14px; opacity:.85;}
+  .iter-head.open .chev{transform:rotate(180deg);}
+
+  .subsection{margin-bottom:24px;}
+  .subsection:last-child{margin-bottom:0;}
+  .subsection h3{
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--copper);
+    margin:0 0 12px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .subsection h3::before{
+    content:"";
+    width:14px;
+    height:2.5px;
+    border-radius:2px;
+    background:var(--copper);
+    display:inline-block;
+  }
+
+  .pair-block{
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px 18px;
+    margin-bottom:12px;
+    background:#fff;
+  }
+  .pair-block .pair-label{
+    font-weight:700;
+    font-size:13.5px;
+    color:var(--navy-deep);
+    margin-bottom:10px;
+    padding-bottom:6px;
+    border-bottom:1px solid #EEF2F6;
+    font-family:var(--mono);
+  }
+  .dir-calc{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    font-family:var(--mono);
+    font-variant-numeric:tabular-nums;
+    font-size:13px;
+    margin:8px 0;
+    color:#2C3E50;
+  }
+  .frac{
+    display:inline-flex;
+    flex-direction:column;
+    align-items:center;
+    vertical-align:middle;
+    margin:0 3px;
+    line-height:1.35;
+  }
+  .frac .num, .frac .den{padding:2px 8px; white-space:nowrap;}
+  .frac .num{border-bottom:1.5px solid currentColor;}
+  .arrow-eq{color:var(--copper); font-weight:700; margin:0 2px;}
+  .result-chip{
+    background:var(--copper-soft);
+    color:#7A4318;
+    font-weight:700;
+    padding:3px 10px;
+    border-radius:6px;
+    font-family:var(--mono);
+  }
+  .avg-line{
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed var(--border);
+    font-family:var(--mono);
+    font-variant-numeric:tabular-nums;
+    font-size:13.5px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .avg-line .final{
+    background:var(--teal-soft);
+    color:#185243;
+    font-weight:700;
+    padding:3px 12px;
+    border-radius:6px;
+  }
+
+  .growth-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+    font-family:var(--mono);
+    font-variant-numeric:tabular-nums;
+    font-size:13px;
+    margin-bottom:8px;
+    padding:10px 14px;
+    border-radius:8px;
+    background:#fff;
+    border:1px solid var(--border);
+  }
+  .growth-row:last-child{margin-bottom:0;}
+  .growth-row .zname{
+    font-weight:800;
+    color:var(--navy-deep);
+    background:#EEF4FA;
+    border-radius:6px;
+    font-family:var(--sans);
+    min-width:32px;
+    height:28px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 8px;
+  }
+  .growth-row .fval{
+    margin-left:auto;
+    font-weight:700;
+    padding:3px 12px;
+    border-radius:6px;
+  }
+  .fval.high, .fval.low{background:var(--red-soft); color:var(--red);}
+  .fval.ok{background:var(--teal-soft); color:#185243;}
+
+  /* Summary tables */
+  .summary-table th:first-child{
+    width:80px;
+    background:#E5ECF3;
+    font-family:var(--mono);
+    color:var(--muted);
+  }
+  .summary-table th:last-child{
+    background:#E2EFEA;
+    color:#185243;
+  }
+  .conv-table th:first-child, .conv-table td:first-child{
+    width:90px;
+    font-weight:700;
+    background:#F1F5F9;
+  }
+  .conv-table td, .conv-table th{font-size:13px; padding:9px 8px;}
+  .conv-cell{
+    border-radius:6px;
+    padding:4px 10px;
+    display:inline-block;
+    min-width:56px;
+    font-weight:700;
+  }
+
+  footer{
+    text-align:center;
+    font-size:12px;
+    color:#7E92A4;
+    margin-top:34px;
+    font-family:var(--mono);
+  }
+
+  @media (max-width:680px){
+    body{padding:18px 12px 60px;}
+    header{padding:22px 20px;}
+    h1{font-size:23px;}
+    .card{padding:18px 16px;}
+    .iter-body{padding:16px;}
+    .formula-pill{width:100%; justify-content:center;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Trip Distribution &middot; Growth-Factor Method</p>
+    <h1>Fratar (Furness) Model</h1>
+    <p>A calculation tool for interzonal trip distribution using the Fratar method, displaying full step-by-step calculations in each iteration until growth factors converge to 1.</p>
+    <div class="formula-box">
+      <div class="formula-pill">
+        <div class="frac"><div class="num">tᵢFᵢ &middot; tᵢⱼFⱼ</div><div class="den">Σⱼ tᵢⱼFⱼ</div></div>
+        <span>= Tᵢⱼ</span>
+      </div>
+      <div class="formula-pill">
+        <span>Fᵢ⁽ᵗ⁺¹⁾ = (Tᵢ⁰ &times; Fᵢ⁰) / Tᵢ⁽ᵗ⁾</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- STEP 1: zone count -->
+  <div class="card">
+    <h2><span class="num">1</span> Number of Zones</h2>
+    <p class="desc">Specify the number of zones between which trips will be distributed (minimum 2, maximum 8 zones).</p>
+    <div class="row">
+      <div class="field zonecount-field">
+        <label for="zoneCount">Number of Zones</label>
+        <input type="number" id="zoneCount" min="2" max="8" value="4">
+      </div>
+      <button class="btn-secondary" onclick="buildInputs()">Generate Input Tables</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: zone data -->
+  <div class="card">
+    <h2><span class="num">2</span> Zone Information</h2>
+    <p class="desc">Enter the name, base total trips (Tᵢ⁰), and growth factor (Fᵢ⁰) for each zone.</p>
+    <div class="matrix-wrap">
+      <table class="zone-table" id="zoneTable"></table>
+    </div>
+  </div>
+
+  <!-- STEP 3: base matrix -->
+  <div class="card">
+    <h2><span class="num">3</span> Base Trip Matrix (t<sub>ij</sub>)</h2>
+    <p class="desc">Enter the number of trips between each pair of zones in the base year. Values are assumed symmetric for both directions.</p>
+    <div class="matrix-wrap">
+      <table class="matrix-table" id="matrixTable"></table>
+    </div>
+  </div>
+
+  <!-- STEP 4: run -->
+  <div class="card">
+    <h2><span class="num">4</span> Run Calculations</h2>
+    <div class="row">
+      <div class="field">
+        <label for="tolerance">Convergence Tolerance |Fᵢ − 1|</label>
+        <input type="number" id="tolerance" value="0.01" step="0.005" min="0.001">
+      </div>
+      <div class="field">
+        <label for="maxIter">Max Iterations</label>
+        <input type="number" id="maxIter" value="12" min="1" max="30">
+      </div>
+      <button class="btn-primary" onclick="runFratar()">Calculate Trip Distribution</button>
+    </div>
+  </div>
+
+  <div id="results"></div>
+
+  <footer>Furness / Fratar Growth-Factor Model &middot; Full Step-by-Step Calculations</footer>
+</div>
+
+<script>
+let N = 4;
+const defaultNames = ['A','B','C','D','E','F','G','H'];
+const defaultT0 = [40,38,32,38,30,30,30,30];
+const defaultF0 = [2,3,1.5,1,1,1,1,1];
+const defaultMatrix = {
+  '0-1':10,'0-2':12,'0-3':18,
+  '1-2':14,'1-3':14,
+  '2-3':6
+};
+
+function buildInputs(){
+  N = Math.max(2, Math.min(8, parseInt(document.getElementById('zoneCount').value) || 4));
+  document.getElementById('zoneCount').value = N;
+
+  // zone table
+  let zt = '<tr><th>Zone</th>';
+  for(let i=0;i<N;i++) zt += `<td><input type="text" id="zname_${i}" value="${defaultNames[i]}"></td>`;
+  zt += '</tr><tr><th>Tᵢ⁰ (Base Total Trips)</th>';
+  for(let i=0;i<N;i++) zt += `<td><input type="number" step="any" id="zT0_${i}" value="${defaultT0[i%defaultT0.length]}"></td>`;
+  zt += '</tr><tr><th>Fᵢ⁰ (Growth Factor)</th>';
+  for(let i=0;i<N;i++) zt += `<td><input type="number" step="any" id="zF0_${i}" value="${defaultF0[i%defaultF0.length]}"></td>`;
+  zt += '</tr>';
+  document.getElementById('zoneTable').innerHTML = zt;
+
+  // matrix table
+  let mt = '<tr><th>i \\ j</th>';
+  for(let j=0;j<N;j++) mt += `<th id="mhead_${j}">${defaultNames[j]}</th>`;
+  mt += '</tr>';
+  for(let i=0;i<N;i++){
+    mt += `<tr><th id="mrow_${i}">${defaultNames[i]}</th>`;
+    for(let j=0;j<N;j++){
+      if(i===j){ mt += `<td class="diag">—</td>`; }
+      else if(j>i){
+        const key = i+'-'+j;
+        const val = defaultMatrix[key] !== undefined ? defaultMatrix[key] : 10;
+        mt += `<td><input type="number" step="any" id="m_${i}_${j}" value="${val}" oninput="mirror(${i},${j})"></td>`;
+      } else {
+        mt += `<td><span class="mirror-box" id="mmirror_${i}_${j}">—</span></td>`;
+      }
+    }
+    mt += '</tr>';
+  }
+  document.getElementById('matrixTable').innerHTML = mt;
+
+  // sync zone name changes into matrix headers
+  for(let i=0;i<N;i++){
+    document.getElementById(`zname_${i}`).addEventListener('input', (e)=>{
+      const v = e.target.value || defaultNames[i];
+      const h = document.getElementById(`mhead_${i}`); if(h) h.textContent=v;
+      const r = document.getElementById(`mrow_${i}`); if(r) r.textContent=v;
+    });
+  }
+
+  for(let i=0;i<N;i++) for(let j=i+1;j<N;j++) mirror(i,j);
+  document.getElementById('results').innerHTML = '';
+}
+
+function mirror(i,j){
+  const val = document.getElementById(`m_${i}_${j}`).value;
+  const cell = document.getElementById(`mmirror_${j}_${i}`);
+  if(cell) cell.textContent = val === '' ? '—' : val;
+}
+
+function readInputs(){
+  const names=[], T0=[], F0=[];
+  for(let i=0;i<N;i++){
+    names.push(document.getElementById(`zname_${i}`).value || defaultNames[i]);
+    T0.push(parseFloat(document.getElementById(`zT0_${i}`).value)||0);
+    F0.push(parseFloat(document.getElementById(`zF0_${i}`).value)||0);
+  }
+  const t = Array.from({length:N},()=>Array(N).fill(0));
+  for(let i=0;i<N;i++) for(let j=0;j<N;j++){
+    if(i===j) continue;
+    const a=Math.min(i,j), b=Math.max(i,j);
+    const v = parseFloat(document.getElementById(`m_${a}_${b}`).value)||0;
+    t[i][j]=v;
+  }
+  return {names, T0, F0, t};
+}
+
+function fmt(x, d=2){
+  if(!isFinite(x)) return '0';
+  return (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toString();
+}
+
+function runFratar(){
+  const {names, T0, F0, t: baseMatrix} = readInputs();
+  const target = T0.map((v,i)=> v*F0[i]); // constant target totals = Ti0 * Fi0
+
+  const tol = parseFloat(document.getElementById('tolerance').value) || 0.01;
+  const maxIter = parseInt(document.getElementById('maxIter').value) || 12;
+
+  let curMatrix = baseMatrix.map(r=>r.slice());
+  let curT = T0.slice();
+  let curF = F0.slice();
+
+  const history = []; // for convergence table: F values per iteration (iteration 0 = initial)
+  history.push(curF.slice());
+
+  let resultsHTML = '';
+  let iter = 0;
+  let converged = false;
+
+  while(iter < maxIter){
+    iter++;
+    // directional calc
+    const dirIJ = Array.from({length:N},()=>Array(N).fill(0)); // T_i->j
+    const denomI = Array(N).fill(0);
+    for(let i=0;i<N;i++){
+      let s=0;
+      for(let k=0;k<N;k++) if(k!==i) s += curMatrix[i][k]*curF[k];
+      denomI[i]=s;
+    }
+    for(let i=0;i<N;i++) for(let j=0;j<N;j++){
+      if(i===j) continue;
+      dirIJ[i][j] = denomI[i]>0 ? (curMatrix[i][j]*curF[j]/denomI[i]) * curT[i]*curF[i] : 0;
+    }
+    // averaged matrix
+    const newMatrix = Array.from({length:N},()=>Array(N).fill(0));
+    for(let i=0;i<N;i++) for(let j=i+1;j<N;j++){
+      const avg = (dirIJ[i][j] + dirIJ[j][i]) / 2;
+      newMatrix[i][j]=avg; newMatrix[j][i]=avg;
+    }
+    // row sums
+    const newT = Array(N).fill(0);
+    for(let i=0;i<N;i++){ let s=0; for(let j=0;j<N;j++) if(j!==i) s+=newMatrix[i][j]; newT[i]=s; }
+    // new growth factors
+    const newF = Array(N).fill(0);
+    for(let i=0;i<N;i++) newF[i] = newT[i]>0 ? target[i]/newT[i] : 0;
+
+    // ---- render this iteration ----
+    resultsHTML += renderIteration(iter, names, curMatrix, curT, curF, dirIJ, newMatrix, newT, target, newF, tol);
+
+    history.push(newF.slice());
+
+    const maxDev = Math.max(...newF.map(f=>Math.abs(f-1)));
+    curMatrix = newMatrix; curT = newT; curF = newF;
+
+    if(maxDev < tol){ converged = true; break; }
+  }
+
+  resultsHTML = renderSummary(names, curMatrix, curT, iter, converged, history) + resultsHTML;
+  document.getElementById('results').innerHTML = resultsHTML;
+  // open first iteration by default
+  const firstBody = document.querySelector('.iter-body');
+  const firstHead = document.querySelector('.iter-head');
+  if(firstBody){ firstBody.classList.add('open'); firstHead.classList.add('open'); }
+  document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function renderIteration(iter, names, curMatrix, curT, curF, dirIJ, newMatrix, newT, target, newF, tol){
+  const maxDev = Math.max(...newF.map(f=>Math.abs(f-1)));
+  const badgeClass = maxDev < tol ? 'converged' : '';
+  const badgeText = maxDev < tol ? `✓ Converged` : `Max Deviation Fᵢ: ${fmt(maxDev,3)}`;
+
+  let pairsHTML = '';
+  for(let i=0;i<N;i++) for(let j=i+1;j<N;j++){
+    let denomTermsI = [];
+    for(let k=0;k<N;k++) if(k!==i) denomTermsI.push(`${fmt(curMatrix[i][k])}&times;${fmt(curF[k])}`);
+    let denomTermsJ = [];
+    for(let k=0;k<N;k++) if(k!==j) denomTermsJ.push(`${fmt(curMatrix[j][k])}&times;${fmt(curF[k])}`);
+
+    pairsHTML += `
+    <div class="pair-block">
+      <div class="pair-label">${names[i]} &harr; ${names[j]}</div>
+
+      <div class="dir-calc">
+        <span>T<sub>${names[i]}&rarr;${names[j]}</sub> =</span>
+        <span class="frac"><span class="num">${fmt(curMatrix[i][j])}&times;${fmt(curF[j])}</span><span class="den">${denomTermsI.join(' + ')}</span></span>
+        <span>&times; ${fmt(curT[i])}&times;${fmt(curF[i])}</span>
+        <span class="arrow-eq">=</span>
+        <span class="result-chip">${fmt(dirIJ[i][j])}</span>
+      </div>
+
+      <div class="dir-calc">
+        <span>T<sub>${names[j]}&rarr;${names[i]}</sub> =</span>
+        <span class="frac"><span class="num">${fmt(curMatrix[j][i])}&times;${fmt(curF[i])}</span><span class="den">${denomTermsJ.join(' + ')}</span></span>
+        <span>&times; ${fmt(curT[j])}&times;${fmt(curF[j])}</span>
+        <span class="arrow-eq">=</span>
+        <span class="result-chip">${fmt(dirIJ[j][i])}</span>
+      </div>
+
+      <div class="avg-line">
+        <span>T<sub>${names[i]}${names[j]}</sub> = ( ${fmt(dirIJ[i][j])} + ${fmt(dirIJ[j][i])} ) / 2</span>
+        <span class="arrow-eq">=</span>
+        <span class="final">${fmt(newMatrix[i][j])}</span>
+      </div>
+    </div>`;
+  }
+
+  let matrixHTML = '<table class="summary-table"><tr><th>i \\ j</th>';
+  for(let j=0;j<N;j++) matrixHTML += `<th>${names[j]}</th>`;
+  matrixHTML += '<th>Total T<sub>i</sub></th></tr>';
+  for(let i=0;i<N;i++){
+    matrixHTML += `<tr><th>${names[i]}</th>`;
+    for(let j=0;j<N;j++){
+      matrixHTML += i===j ? `<td class="diag">—</td>` : `<td>${fmt(newMatrix[i][j])}</td>`;
+    }
+    matrixHTML += `<td style="font-weight:700;background:#F7E7D7;color:#7A4318;">${fmt(newT[i])}</td></tr>`;
+  }
+  matrixHTML += '</table>';
+
+  let rowSumHTML = '';
+  for(let i=0;i<N;i++){
+    const terms = [];
+    const vals = [];
+    for(let j=0;j<N;j++) if(j!==i){ terms.push(`T<sub>${names[i]}${names[j]}</sub><sup>${iter}</sup>`); vals.push(fmt(newMatrix[i][j])); }
+    rowSumHTML += `
+    <div class="growth-row">
+      <span class="zname">${names[i]}</span>
+      <span>T<sub>${names[i]}</sub><sup>${iter}</sup> = ${terms.join(' + ')} = ${vals.join(' + ')}</span>
+      <span class="fval ok">${fmt(newT[i])}</span>
+    </div>`;
+  }
+
+  let growthHTML = '';
+  for(let i=0;i<N;i++){
+    const dev = Math.abs(newF[i]-1);
+    const cls = dev < tol ? 'ok' : 'high';
+    growthHTML += `
+    <div class="growth-row">
+      <span class="zname">${names[i]}</span>
+      <span>F<sub>${names[i]}</sub><sup>${iter}</sup> = (T<sub>${names[i]}</sub>⁰&times;F<sub>${names[i]}</sub>⁰) / T<sub>${names[i]}</sub><sup>${iter}</sup> = ${fmt(target[i])} / ${fmt(newT[i])}</span>
+      <span class="fval ${cls}">${fmt(newF[i],3)}</span>
+    </div>`;
+  }
+
+  return `
+  <div class="iter-card">
+    <div class="iter-head" onclick="toggleIter(this)">
+      <div class="title">🔁 Iteration ${iter}</div>
+      <div class="iter-meta">
+        <span class="badge ${badgeClass}">${badgeText}</span>
+        <span class="chev">▾</span>
+      </div>
+    </div>
+    <div class="iter-body">
+      <div class="subsection">
+        <h3>Step A — Directional Trip Calculation & Averaging</h3>
+        ${pairsHTML}
+      </div>
+      <div class="subsection">
+        <h3>Step B — Trip Matrix for This Iteration (T<sub>ij</sub><sup>${iter}</sup>)</h3>
+        <div class="matrix-wrap">${matrixHTML}</div>
+        <div style="margin-top:14px;">${rowSumHTML}</div>
+      </div>
+      <div class="subsection">
+        <h3>Step C — Update Growth Factors for Next Iteration</h3>
+        ${growthHTML}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderSummary(names, finalMatrix, finalT, iterCount, converged, history){
+  let matrixHTML = '<table class="summary-table"><tr><th>i \\ j</th>';
+  for(let j=0;j<N;j++) matrixHTML += `<th>${names[j]}</th>`;
+  matrixHTML += '<th>Total</th></tr>';
+  for(let i=0;i<N;i++){
+    matrixHTML += `<tr><th>${names[i]}</th>`;
+    for(let j=0;j<N;j++) matrixHTML += i===j ? `<td class="diag">—</td>` : `<td style="font-weight:700;">${fmt(finalMatrix[i][j])}</td>`;
+    matrixHTML += `<td style="font-weight:700;background:#DCF0EB;color:#185243;">${fmt(finalT[i])}</td></tr>`;
+  }
+  matrixHTML += '</table>';
+
+  let convHTML = '<table class="conv-table"><tr><th>Zone</th>';
+  for(let t=0;t<history.length;t++) convHTML += `<th>${t===0?'Initial':'Iter '+t}</th>`;
+  convHTML += '</tr>';
+  for(let i=0;i<N;i++){
+    convHTML += `<tr><th>${names[i]}</th>`;
+    for(let t=0;t<history.length;t++){
+      const f = history[t][i];
+      const dev = Math.abs(f-1);
+      let bg = '#F9E0DF', col='#B5453D';
+      if(dev < 0.02){ bg='#DCF0EB'; col='#185243'; }
+      else if(dev < 0.08){ bg='#FCEFDD'; col='#8A5A1C'; }
+      convHTML += `<td><span class="conv-cell" style="background:${bg};color:${col};">${fmt(f,3)}</span></td>`;
+    }
+    convHTML += '</tr>';
+  }
+  convHTML += '</table>';
+
+  const statusText = converged
+    ? `✓ Convergence achieved at iteration ${iterCount} (growth factors approached 1).`
+    : `⚠ Full convergence within the specified tolerance was not reached after ${iterCount} iterations. Increase "Max Iterations" for a more accurate result.`;
+
+  return `
+  <div class="card" style="border-color:${converged?'#267362':'#C1712F'};">
+    <h2><span class="num" style="background:${converged?'var(--teal)':'var(--copper)'};">✓</span> Final Result</h2>
+    <p class="desc" style="color:${converged?'#185243':'#8A5A1C'}; font-weight:600;">${statusText}</p>
+    <div class="subsection">
+      <h3>Final Trip Distribution Matrix</h3>
+      <div class="matrix-wrap">${matrixHTML}</div>
+    </div>
+    <div class="subsection">
+      <h3>Growth Factor Convergence Trend (Fᵢ per Iteration)</h3>
+      <div class="matrix-wrap">${convHTML}</div>
+    </div>
+  </div>`;
+}
+
+function toggleIter(headEl){
+  headEl.classList.toggle('open');
+  headEl.nextElementSibling.classList.toggle('open');
+}
+
+// init
+buildInputs();
+</script>
+</body>
+</html>

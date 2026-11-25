@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRC Trip Assignment Model</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --paper: #F4F7FA;
+            --paper-line: #E5ECF2;
+            --border: #D8E1E9;
+            --ink: #1A2836;
+            --muted: #5B7083;
+            --navy: #1E3A5F;
+            --navy-deep: #122640;
+            --copper: #C1712F;
+            --copper-hover: #A95F22;
+            --copper-soft: #F7E7D7;
+            --teal: #267362;
+            --teal-soft: #DCF0EB;
+            --card: #FFFFFF;
+            --mono: 'JetBrains Mono', monospace;
+            --sans: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+        body {
+            font-family: var(--sans);
+            color: var(--ink);
+            background:
+                linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0/100% 28px,
+                linear-gradient(90deg, var(--paper-line) 1px, transparent 1px) 0 0/28px 100%,
+                var(--paper);
+            background-attachment: local;
+            min-height: 100vh;
+            padding: 32px 20px 80px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 1060px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--navy-deep) 0%, var(--navy) 100%);
+            color: #fff;
+            border-radius: 16px;
+            padding: 30px 34px;
+            margin-bottom: 22px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 28px rgba(18, 38, 64, .22);
+        }
+        header::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, .03) 0 2px, transparent 2px 14px);
+            pointer-events: none;
+        }
+        .eyebrow {
+            font-family: var(--mono);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: .14em;
+            color: #9BC0E2;
+            text-transform: uppercase;
+            margin: 0 0 8px;
+        }
+        h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -.02em;
+            color: #fff;
+            text-align: left;
+        }
+        header p {
+            margin: 0;
+            color: #D0DFEE;
+            font-size: 14.5px;
+            line-height: 1.7;
+        }
+        .formula-box {
+            margin-top: 20px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-family: var(--mono);
+            font-size: 13.5px;
+            color: #F0F6FC;
+        }
+        .formula-pill {
+            background: rgba(255, 255, 255, .08);
+            border: 1px solid rgba(255, 255, 255, .16);
+            border-radius: 10px;
+            padding: 12px 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px 28px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 12px rgba(18, 38, 64, .04);
+        }
+        .card h2 {
+            font-size: 17px;
+            font-weight: 700;
+            margin: 0 0 16px;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            color: var(--navy-deep);
+            text-align: left;
+        }
+        .card h2 .num {
+            font-family: var(--mono);
+            background: var(--navy);
+            color: #fff;
+            font-size: 12.5px;
+            font-weight: 700;
+            width: 26px;
+            height: 26px;
+            border-radius: 7px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Controls Row */
+        .controls-row {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            margin-bottom: 0;
+        }
+        label {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--muted);
+            display: block;
+            margin-bottom: 0;
+        }
+
+        /* Inputs */
+        input[type="number"] {
+            font-family: var(--mono);
+            font-variant-numeric: tabular-nums;
+            font-size: 14px;
+            font-weight: 500;
+            width: 100%;
+            max-width: 86px;
+            height: 38px;
+            padding: 6px 8px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            background: #FAFBFD;
+            color: var(--ink);
+            text-align: center;
+            transition: border-color .15s, box-shadow .15s, background .15s;
+        }
+        .form-group input[type="number"] {
+            max-width: 130px;
+            width: 130px !important;
+        }
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--navy);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(30, 58, 95, .12);
+        }
+
+        /* Table */
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            font-family: var(--mono);
+            font-variant-numeric: tabular-nums;
+            font-size: 13.5px;
+            margin: 0;
+        }
+        th, td {
+            border: 1px solid var(--border);
+            padding: 11px 8px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        table tr:first-child th, table tr:first-child td { border-top: none; }
+        table tr:last-child th, table tr:last-child td { border-bottom: none; }
+        table tr th:first-child, table tr td:first-child { border-left: none; }
+        table tr th:last-child, table tr td:last-child { border-right: none; }
+
+        th {
+            background: #EDF2F7;
+            color: var(--navy-deep);
+            font-family: var(--sans);
+            font-weight: 700;
+            font-size: 12.5px;
+            line-height: 1.4;
+        }
+        tbody td:first-child {
+            background: #F1F5F9;
+            color: var(--navy-deep);
+            font-weight: 800;
+            font-size: 14px;
+            width: 85px;
+        }
+
+        /* Button */
+        button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 50px;
+            background-color: var(--copper);
+            color: #fff;
+            font-family: var(--sans);
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(193, 113, 47, .32);
+            transition: background-color .15s, transform .1s, box-shadow .15s;
+            margin-top: 8px;
+        }
+        button:hover {
+            background-color: var(--copper-hover);
+            box-shadow: 0 6px 18px rgba(193, 113, 47, .42);
+        }
+        button:active { transform: translateY(1px); }
+
+        /* Results */
+        #results {
+            margin-top: 28px;
+            padding: 28px 30px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(18, 38, 64, .05);
+            display: none;
+        }
+        #results h2 {
+            text-align: center;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--navy-deep);
+            margin: 0 0 24px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid #EDF2F7;
+        }
+        .step {
+            margin-bottom: 24px;
+            padding-bottom: 22px;
+            border-bottom: 1px dashed var(--border);
+        }
+        .step:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        .step h3 {
+            font-weight: 700;
+            margin: 0 0 12px;
+            color: var(--copper);
+            font-size: 14.5px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .step h3::before {
+            content: "";
+            width: 14px;
+            height: 2.5px;
+            border-radius: 2px;
+            background: var(--copper);
+            display: inline-block;
+        }
+        .step strong {
+            display: inline-block;
+            color: var(--navy-deep);
+            font-size: 14px;
+            margin-top: 6px;
+            margin-bottom: 4px;
+        }
+        .formula {
+            direction: ltr;
+            text-align: left;
+            background: #162436;
+            color: #DCE6F2;
+            padding: 15px 20px;
+            border-radius: 10px;
+            border: 1px solid #243852;
+            font-family: var(--mono);
+            font-variant-numeric: tabular-nums;
+            font-size: 14px;
+            margin: 10px 0;
+            overflow-x: auto;
+            line-height: 1.65;
+        }
+        .formula[style] {
+            background: #1B2D44 !important;
+            color: #9BC0E2 !important;
+            font-size: 13px !important;
+            border-color: #2B4363 !important;
+        }
+        .note {
+            margin-top: 16px;
+            padding: 14px 18px;
+            background: var(--teal-soft);
+            border: 1px solid #A7D7CA;
+            border-left: 4px solid var(--teal);
+            border-radius: 10px;
+            color: #185243;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 12px;
+            color: #7E92A4;
+            margin-top: 34px;
+            font-family: var(--mono);
+        }
+
+        @media (max-width: 680px) {
+            body { padding: 18px 12px 60px; }
+            header { padding: 22px 20px; }
+            h1 { font-size: 23px; }
+            .card, #results { padding: 18px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <p class="eyebrow">Trip Assignment &middot; Capacity Restraint Method</p>
+        <h1>TRC Trip Assignment Model</h1>
+        <p>Iterative capacity-restraint traffic assignment model allocating total interzonal trips across competing routes based on travel time updates.</p>
+        <div class="formula-box">
+            <div class="formula-pill">
+                <span>V<sub>i</sub><sup>(k)</sup> = (1 / t<sub>i</sub><sup>(k&minus;1)</sup>) / &Sigma;(1 / t<sub>j</sub><sup>(k&minus;1)</sup>) &times; V</span>
+            </div>
+            <div class="formula-pill">
+                <span>t<sub>i</sub><sup>(k)</sup> = [t<sub>rc,i</sub> + d &middot; (V<sub>i</sub> &minus; V<sub>rc,i</sub>) / V<sub>rc,i</sub>] &times; L<sub>i</sub></span>
+            </div>
+        </div>
+    </header>
+    
+    <div class="card">
+        <h2><span class="num">1</span> General Parameters</h2>
+        <div class="controls-row">
+            <div class="form-group">
+                <label>Total Trips Between Two Zones (V): </label>
+                <input type="number" id="totalVolume" value="1200" style="width: 100px;">
+            </div>
+            
+            <div class="form-group">
+                <label>Desired Number of Iterations: </label>
+                <input type="number" id="iterations" value="2" min="1" style="width: 100px;">
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2><span class="num">2</span> Route Information</h2>
+        <div class="table-wrap">
+            <table id="routesTable">
+                <thead>
+                    <tr>
+                        <th>Route Number</th>
+                        <th>Number of Lanes</th>
+                        <th>Speed Limit (MPH)</th>
+                        <th>Intersections per Mile (S)</th>
+                        <th>Route Length (Miles) L</th>
+                        <th>Initial Unit Travel Time (min/mile)</th>
+                        <th>Critical Travel Time trc</th>
+                        <th>Critical Travel Volume Vrc</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td><input type="number" id="lanes_1" value="1"></td>
+                        <td><input type="number" id="speed_1" value="30"></td>
+                        <td><input type="number" id="S_1" value="1"></td>
+                        <td><input type="number" id="L_1" value="3" step="any"></td>
+                        <td><input type="number" id="t_base_1" value="2.5" step="any"></td>
+                        <td><input type="number" id="trc_1" value="3" step="any"></td>
+                        <td><input type="number" id="Vrc_1" value="600"></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td><input type="number" id="lanes_2" value="1"></td>
+                        <td><input type="number" id="speed_2" value="50"></td>
+                        <td><input type="number" id="S_2" value="1"></td>
+                        <td><input type="number" id="L_2" value="4" step="any"></td>
+                        <td><input type="number" id="t_base_2" value="1.5" step="any"></td>
+                        <td><input type="number" id="trc_2" value="2" step="any"></td>
+                        <td><input type="number" id="Vrc_2" value="1100"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <button onclick="calculateTRC()">Calculate</button>
+
+    <div id="results"></div>
+
+    <footer>TRC Trip Assignment Model &middot; Transportation Engineering &amp; Planning</footer>
+</div>
+
+<script>
+    function round2(num) {
+        return Math.round(num * 100) / 100;
+    }
+
+    function calculateTRC() {
+        const V_total = parseFloat(document.getElementById('totalVolume').value);
+        const num_iterations = parseInt(document.getElementById('iterations').value);
+        
+        let routes = [];
+        for (let i = 1; i <= 2; i++) {
+            routes.push({
+                id: i,
+                lanes: parseFloat(document.getElementById(`lanes_${i}`).value),
+                speed: parseFloat(document.getElementById(`speed_${i}`).value),
+                S: parseFloat(document.getElementById(`S_${i}`).value),
+                L: parseFloat(document.getElementById(`L_${i}`).value),
+                t_base: parseFloat(document.getElementById(`t_base_${i}`).value),
+                trc: parseFloat(document.getElementById(`trc_${i}`).value),
+                Vrc: parseFloat(document.getElementById(`Vrc_${i}`).value)
+            });
+        }
+
+        let resultsHTML = "<h2>Calculation Results</h2>";
+        
+        let t_current = [];
+        resultsHTML += `<div class="step"><h3>Initial Travel Time Calculation (t<sup>0</sup>)</h3>`;
+        routes.forEach((route) => {
+            let t0 = route.t_base * route.L;
+            t_current.push(t0);
+            resultsHTML += `<div class="formula">t<sub>${route.id}</sub><sup>0</sup> = ${route.t_base} * ${route.L} = ${round2(t0)} min</div>`;
+        });
+        resultsHTML += `</div>`;
+
+        let previous_t = [...t_current];
+
+        for (let k = 1; k <= num_iterations; k++) {
+            resultsHTML += `<div class="step"><h3>Iteration ${k}</h3>`;
+            
+            let sum_inv_t = 0;
+            let sum_formula_str = "";
+            routes.forEach((route, index) => {
+                sum_inv_t += 1 / t_current[index];
+                sum_formula_str += `1/${round2(t_current[index])} + `;
+            });
+            sum_formula_str = sum_formula_str.slice(0, -3);
+
+            let V_current = [];
+            routes.forEach((route, index) => {
+                let v = (1 / t_current[index]) / sum_inv_t * V_total;
+                V_current.push(Math.round(v));
+                resultsHTML += `<div class="formula">V<sub>${route.id}</sub><sup>${k}</sup> = (1 / ${round2(t_current[index])}) / (${sum_formula_str}) * ${V_total} = ${Math.round(v)} VPHPL</div>`;
+            });
+
+            let t_new = [];
+            routes.forEach((route, index) => {
+                let v = V_current[index];
+                let d = (v < route.Vrc) ? 0.5 : 10;
+                
+                let t_calc = (route.trc + (d * (v - route.Vrc) / route.Vrc)) * route.L;
+                t_new.push(t_calc);
+
+                resultsHTML += `<div class="formula" style="font-size:16px; color:#555;">V<sub>${route.id}</sub> = ${v}, V<sub>rc${route.id}</sub> = ${route.Vrc} &#8594; d = ${d}</div>`;
+                resultsHTML += `<div class="formula">t<sub>${route.id}</sub><sup>${k}</sup> = [${route.trc} + ${d}(${v} - ${route.Vrc}) / ${route.Vrc}] * ${route.L} = ${round2(t_calc)} min</div>`;
+            });
+            
+            // Calculate time differences from the second iteration onwards with full precision
+            if (k >= 2) {
+                resultsHTML += `<div style="margin-top:10px;"><strong>Time Difference Calculation ($t^{${k}} - t^{${k-1}}$):</strong></div>`;
+                routes.forEach((route, index) => {
+                    let val_curr = round2(t_new[index]);
+                    let val_prev = round2(previous_t[index]);
+                    let diff_min = round2(Math.abs(val_curr - val_prev));
+                    let diff_sec = round2(diff_min * 60);
+                    resultsHTML += `<div class="formula">t<sub>${route.id}</sub><sup>${k}</sup> - t<sub>${route.id}</sub><sup>${k-1}</sup> = ${val_curr} - ${val_prev} = ${diff_min} min = ${diff_sec} sec</div>`;
+                });
+                resultsHTML += `<div class="note">Since the time differences have become very small, we stop here and there is no need to continue.</div>`;
+            }
+
+            previous_t = [...t_new];
+            t_current = [...t_new];
+            resultsHTML += `</div>`;
+        }
+
+        const resDiv = document.getElementById('results');
+        resDiv.innerHTML = resultsHTML;
+        resDiv.style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
